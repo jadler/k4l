@@ -1,0 +1,13 @@
+/* 
+ * File:   k4linternal.h
+ * Author: jaguar
+ *
+ * Created on 21 de Abril de 2015, 16:39
+ */
+#ifndef K4LINTERNAL_H
+#define	K4LINTERNAL_H
+
+#define MAJOR_VERSION @K4L_MAJOR_VERSION@
+#define MINOR_VERSION @K4L_MINOR_VERSION@
+
+#endif	/* K4LINTERNAL_H */
