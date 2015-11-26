@@ -1,0 +1,16 @@
+SET (@PROJECT_NAME@_VERSION @PROJECT_VERSION@)
+@PACKAGE_INIT@
+
+SET (@PROJECT_NAME@_LIBRARY_DIR "@PACKAGE_LIBRARY_DIR@")
+SET (@PROJECT_NAME@_RUNTIME_DIR "@PACKAGE_RUNTIME_DIR@")
+SET (@PROJECT_NAME@_INCLUDE_DIR "@PACKAGE_INCLUDE_DIR@")
+
+# SET_AND_CHECK lança um erro caso um diretório não exista.
+# Um exemplo é quando se cria uma biblioteca que não gera nenhum binário (RUNTIME)
+# Usando o SET permite que a configuração passe para UseBSPOS sem que o usuário
+# tenha que se preocupar em definir os locais de instalação dos arquivos.
+#SET_AND_CHECK (@PROJECT_NAME@_LIBRARY_DIR "@PACKAGE_LIBRARY_DIR@")
+#SET_AND_CHECK (@PROJECT_NAME@_RUNTIME_DIR "@PACKAGE_RUNTIME_DIR@")
+#SET_AND_CHECK (@PROJECT_NAME@_INCLUDE_DIR "@PACKAGE_INCLUDE_DIR@")
+
+#CHECK_REQUIRED_COMPONENTS (@PROJECT_NAME@)
