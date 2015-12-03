@@ -33,10 +33,12 @@ GET_FILENAME_COMPONENT (PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 # Permite que as variáveis possam ser alteradas pela linha de comando.
 SET (PROJECT_NAME ${PROJECT_NAME} CACHE STRING "Default project name")
 
-SET (PROJECT_VERSION_MAJOR 1 CACHE STRING "Default major version")
-SET (PROJECT_VERSION_MINOR 0 CACHE STRING "Default minor version")
-SET (PROJECT_VERSION_PATCH 0 CACHE STRING "Default patch version")
-SET (PROJECT_VERSION_TWEAK 0 CACHE STRING "Default tweak version")
+SET (VERSION_MAJOR 1 CACHE STRING "Default major version")
+SET (VERSION_MINOR 0 CACHE STRING "Default minor version")
+SET (VERSION_PATCH 0 CACHE STRING "Default patch version")
+SET (VERSION_TWEAK 0 CACHE STRING "Default tweak version")
+SET (VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" CACHE STRING "Short version")
+SET (VERSION_FULL "${VERSION_SHORT}-${VERSION_TWEAK}" CACHE STRING "Full version")
 
 SET (RUNTIME_DIR bin CACHE PATH "Installation directory for binaries")
 SET (LIBRARY_DIR lib CACHE PATH "Installation directory for libraries")
@@ -51,20 +53,18 @@ FILE (GLOB SOURCES "src/*.c*")
 FILE (GLOB HEADERS "include/*.h*")
 INCLUDE_DIRECTORIES (${CMAKE_SOURCE_DIR}/include)
 
-OPTION (CHECK_SVN "Check subversion for project information" OFF)
-IF (CHECK_SVN)
-  # PROJECT_VERSION_TWEAK é usado como número da revisão no subversion
-  FIND_PACKAGE (Subversion REQUIRED)
-  IF (EXISTS "${CMAKE_SOURCE_DIR}/.svn" AND SUBVERSION_FOUND)
-    SUBVERSION_WC_INFO (${CMAKE_HOME_DIRECTORY} THIS_PROJECT)
-    SET (PROJECT_VERSION_TWEAK ${THIS_PROJECT_WC_REVISION})
-  ELSE ()
-    SET (PROJECT_VERSION_TWEAK 0)
-  ENDIF ()
+FIND_PACKAGE (Git)
+IF (GIT_FOUND)
+  EXECUTE_PROCESS (COMMAND ${GIT_EXECUTABLE} describe --tags --long OUTPUT_VARIABLE VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+  STRING (REGEX REPLACE "^v([0-9]+)\\..*" "\\1" VERSION_MAJOR "${VERSION}")
+  STRING (REGEX REPLACE "^v[0-9]+\\.([0-9]+).*" "\\1" VERSION_MINOR "${VERSION}")
+  STRING (REGEX REPLACE "^v[0-9]+\\.[0-9]+\\-([0-9]+).*" "\\1" VERSION_PATCH "${VERSION}")
+  STRING (REGEX REPLACE "^v[0-9]+\\.[0-9]+\\-[0-9]-(.*)" "\\1" VERSION_TWEAK "${VERSION}")
+  SET (VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+  SET (VERSION_FULL "${VERSION_SHORT}-${VERSION_TWEAK}")
 ENDIF()
 
-# A versão deve sempre ser espcíficada junto ao nome do produto para que elas possam ser usadas em outras partes da construção
-PROJECT (${PROJECT_NAME} VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK})
+PROJECT (${PROJECT_NAME})
 
 ################################################################################
 ################################################################################
@@ -127,6 +127,7 @@ INSTALL (
 
 WRITE_BASIC_PACKAGE_VERSION_FILE(
   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+  VERSION ${VERSION_SHORT}
   COMPATIBILITY SameMajorVersion)
 
 INSTALL (
@@ -171,15 +172,15 @@ IF (PACKAGE)
 
   ELSE ()
 
-    SET (CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-    SET (CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-    SET (CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-    SET (CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+    SET (CPACK_PACKAGE_VERSION "${VERSION_SHORT}")
+    SET (CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
+    SET (CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
+    SET (CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
     SET (CPACK_PACKAGE_NAME "${PROJECT_NAME}" CACHE STRING "Default package name")
     SET (CPACK_PACKAGE_VENDOR "BioLogica Sistemas S.A" CACHE STRING "Default package vendor name")
     SET (CPACK_PACKAGE_DESCRIPTION_SUMMARY "" CACHE STRING "Short description summary")
     SET (CPACK_PACKAGE_INSTALL_DIRECTORY "BioLogica Sistemas" CACHE STRING "Default installation directory")
-    SET (CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}" CACHE STRING "Package file name without extension")
+    SET (CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${VERSION_FULL}" CACHE STRING "Package file name without extension")
 
     MESSAGE (STATUS "cpack generator: ${CPACK_GENERATOR}")
 
